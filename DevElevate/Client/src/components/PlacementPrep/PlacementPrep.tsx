@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGlobalState } from '../../contexts/GlobalContext';
-import { FileText, Download, Users, Calendar, Target, BookOpen, ExternalLink} from 'lucide-react';
+import { FileText, Download, Users, Calendar, Target, BookOpen, ExternalLink, Upload, ChevronRight, ChevronLeft, Check, X, Plus, Trash2, Globe, MapPin} from 'lucide-react';
 import { Code } from 'lucide-react';
 const PlacementPrep: React.FC = () => {
   const { state } = useGlobalState();
@@ -10,6 +10,67 @@ const PlacementPrep: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
+
+  // Application modal state
+  const [showApplicationModal, setShowApplicationModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [applicationData, setApplicationData] = useState({
+    // Personal Information
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    dateOfBirth: '',
+    address: '',
+    city: '',
+    country: '',
+    linkedinUrl: '',
+    portfolioUrl: '',
+    githubUrl: '',
+
+    // Professional Information
+    experienceLevel: '',
+    currentJobTitle: '',
+    currentCompany: '',
+    expectedSalary: '',
+    availableStartDate: '',
+    workPreference: '',
+    noticePeriod: '',
+
+    // Education
+    education: '',
+    university: '',
+    graduationYear: '',
+    gpa: '',
+
+    // Skills & Experience
+    skills: [] as string[],
+    primarySkills: '',
+    yearsOfExperience: '',
+    previousExperience: '',
+
+    // Documents & Files
+    resume: null as File | null,
+    coverLetter: '',
+    additionalDocuments: [] as File[],
+
+    // Job Specific
+    whyInterested: '',
+    expectedChallenges: '',
+    careerGoals: '',
+    additionalInfo: '',
+
+    // Legal & Preferences
+    requiresVisa: false,
+    relocateWilling: false,
+    agreeToTerms: false,
+    allowDataProcessing: false
+  });
+
+  const [formErrors, setFormErrors] = useState<any>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -24,7 +85,6 @@ const PlacementPrep: React.FC = () => {
     { id: 'resources', label: 'Resources', icon: BookOpen },
     { id: 'mock', label: 'Mock Interviews', icon: Calendar },
     { id: 'practice', label: 'Practice DSA', icon: Code }
-
   ];
 
   const jobOpportunities = [
@@ -467,20 +527,15 @@ const PlacementPrep: React.FC = () => {
                     Deadline: {job.deadline}
                   </p>
                 </div>
-                <button 
+                <button
                   onClick={() => {
                     console.log(`Applying to ${job.position} at ${job.company}`);
-                    if (job.applyUrl && job.applyUrl !== '#') {
-                      // Open real job application URL in new tab
-                      window.open(job.applyUrl, '_blank', 'noopener,noreferrer');
-                    } else {
-                      // Fallback for mock data or invalid URLs
-                      alert(`🚧 Coming Soon!\n\nJob application feature for ${job.position} at ${job.company} will be available soon.\n\nFor now, please visit the company's career page directly.`);
-                    }
+                    setSelectedJob(job);
+                    setShowApplicationModal(true);
                   }}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors rounded-lg"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <Users className="w-4 h-4" />
                   <span>Apply</span>
                 </button>
               </div>
@@ -731,8 +786,804 @@ const PlacementPrep: React.FC = () => {
           {selectedTab === 'resources' && renderResources()}
           {selectedTab === 'mock' && renderMockInterviews()}
           {selectedTab === 'practice' && renderPractice()}
-
         </div>
+
+        {/* Enhanced Application Modal */}
+        {showApplicationModal && selectedJob && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className={`max-w-4xl w-full p-6 rounded-2xl ${state.darkMode ? 'bg-gray-800' : 'bg-white'} max-h-[90vh] overflow-y-auto`}>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className={`text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Apply to {selectedJob.company}
+                  </h3>
+                  <p className={`text-sm ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {selectedJob.position} • {selectedJob.location}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowApplicationModal(false);
+                    setSelectedJob(null);
+                    setCurrentStep(1);
+                    setApplicationData({
+                      firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', address: '', city: '', country: '', linkedinUrl: '', portfolioUrl: '', githubUrl: '',
+                      experienceLevel: '', currentJobTitle: '', currentCompany: '', expectedSalary: '', availableStartDate: '', workPreference: '', noticePeriod: '',
+                      education: '', university: '', graduationYear: '', gpa: '', skills: [], primarySkills: '', yearsOfExperience: '', previousExperience: '',
+                      resume: null, coverLetter: '', additionalDocuments: [], whyInterested: '', expectedChallenges: '', careerGoals: '', additionalInfo: '',
+                      requiresVisa: false, relocateWilling: false, agreeToTerms: false, allowDataProcessing: false
+                    });
+                  }}
+                  className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Progress Steps */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between">
+                  {[
+                    { step: 1, title: 'Personal Info', icon: Users },
+                    { step: 2, title: 'Professional', icon: Target },
+                    { step: 3, title: 'Documents', icon: FileText },
+                    { step: 4, title: 'Review', icon: Check }
+                  ].map(({ step, title, icon: Icon }) => (
+                    <div key={step} className="flex items-center">
+                      <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
+                        currentStep >= step
+                          ? 'bg-blue-500 border-blue-500 text-white'
+                          : 'border-gray-300 text-gray-400'
+                      }`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="ml-3 hidden md:block">
+                        <p className={`text-sm font-medium ${currentStep >= step ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500'}`}>
+                          {title}
+                        </p>
+                      </div>
+                      {step < 4 && (
+                        <div className={`hidden md:block w-20 h-0.5 ml-4 ${
+                          currentStep > step ? 'bg-blue-500' : 'bg-gray-300'
+                        }`} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Form Content */}
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (currentStep < 4) {
+                  setCurrentStep(currentStep + 1);
+                } else {
+                  // Submit application
+                  setIsSubmitting(true);
+                  setTimeout(() => {
+                    const application = {
+                      id: Date.now(),
+                      jobId: selectedJob.company + selectedJob.position,
+                      company: selectedJob.company,
+                      position: selectedJob.position,
+                      ...applicationData,
+                      appliedAt: new Date().toISOString(),
+                      status: 'Applied'
+                    };
+
+                    const existingApplications = JSON.parse(localStorage.getItem('jobApplications') || '[]');
+                    existingApplications.push(application);
+                    localStorage.setItem('jobApplications', JSON.stringify(existingApplications));
+
+                    setIsSubmitting(false);
+                    setShowSuccessModal(true);
+                    setShowApplicationModal(false);
+                    setCurrentStep(1);
+                  }, 2000);
+                }
+              }}>
+
+                {/* Step 1: Personal Information */}
+                {currentStep === 1 && (
+                  <div className="space-y-6">
+                    <h4 className={`text-lg font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
+                      Personal Information
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          First Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={applicationData.firstName}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, firstName: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="John"
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Last Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={applicationData.lastName}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, lastName: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="Doe"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={applicationData.email}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, email: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="john.doe@example.com"
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Phone Number *
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          value={applicationData.phone}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, phone: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="+1 (555) 123-4567"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Date of Birth
+                        </label>
+                        <input
+                          type="date"
+                          value={applicationData.dateOfBirth}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          City *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={applicationData.city}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, city: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="New York"
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Country *
+                        </label>
+                        <select
+                          required
+                          value={applicationData.country}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, country: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        >
+                          <option value="">Select Country</option>
+                          <option value="US">United States</option>
+                          <option value="CA">Canada</option>
+                          <option value="UK">United Kingdom</option>
+                          <option value="IN">India</option>
+                          <option value="DE">Germany</option>
+                          <option value="AU">Australia</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Address
+                      </label>
+                      <input
+                        type="text"
+                        value={applicationData.address}
+                        onChange={(e) => setApplicationData(prev => ({ ...prev, address: e.target.value }))}
+                        className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="123 Main Street, Apt 4B"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          LinkedIn Profile
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="url"
+                            value={applicationData.linkedinUrl}
+                            onChange={(e) => setApplicationData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
+                            className={`w-full pl-10 pr-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                            placeholder="linkedin.com/in/yourname"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Portfolio URL
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="url"
+                            value={applicationData.portfolioUrl}
+                            onChange={(e) => setApplicationData(prev => ({ ...prev, portfolioUrl: e.target.value }))}
+                            className={`w-full pl-10 pr-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                            placeholder="yourportfolio.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          GitHub Profile
+                        </label>
+                        <div className="relative">
+                          <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="url"
+                            value={applicationData.githubUrl}
+                            onChange={(e) => setApplicationData(prev => ({ ...prev, githubUrl: e.target.value }))}
+                            className={`w-full pl-10 pr-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                            placeholder="github.com/yourname"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Professional Information */}
+                {currentStep === 2 && (
+                  <div className="space-y-6">
+                    <h4 className={`text-lg font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
+                      Professional Information
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Experience Level *
+                        </label>
+                        <select
+                          required
+                          value={applicationData.experienceLevel}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, experienceLevel: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        >
+                          <option value="">Select Experience Level</option>
+                          <option value="entry">Entry Level (0-2 years)</option>
+                          <option value="mid">Mid Level (2-5 years)</option>
+                          <option value="senior">Senior Level (5-10 years)</option>
+                          <option value="lead">Lead/Principal (10+ years)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Years of Experience *
+                        </label>
+                        <input
+                          type="number"
+                          required
+                          min="0"
+                          max="50"
+                          value={applicationData.yearsOfExperience}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, yearsOfExperience: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="5"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Current Job Title
+                        </label>
+                        <input
+                          type="text"
+                          value={applicationData.currentJobTitle}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, currentJobTitle: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="Senior Software Engineer"
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Current Company
+                        </label>
+                        <input
+                          type="text"
+                          value={applicationData.currentCompany}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, currentCompany: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="Tech Corp Inc."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Expected Salary
+                        </label>
+                        <input
+                          type="text"
+                          value={applicationData.expectedSalary}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, expectedSalary: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="$120,000 - $150,000"
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Available Start Date
+                        </label>
+                        <input
+                          type="date"
+                          value={applicationData.availableStartDate}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, availableStartDate: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Notice Period
+                        </label>
+                        <select
+                          value={applicationData.noticePeriod}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, noticePeriod: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        >
+                          <option value="">Select Notice Period</option>
+                          <option value="immediate">Immediate</option>
+                          <option value="2weeks">2 Weeks</option>
+                          <option value="1month">1 Month</option>
+                          <option value="2months">2 Months</option>
+                          <option value="3months">3 Months</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Work Preference *
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {['remote', 'hybrid', 'onsite'].map((preference) => (
+                          <label
+                            key={preference}
+                            className={`relative flex items-center justify-center p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                              applicationData.workPreference === preference
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                : 'border-gray-300 hover:border-blue-400'
+                            } ${state.darkMode ? 'bg-gray-700' : 'bg-white'}`}
+                          >
+                            <input
+                              type="radio"
+                              name="workPreference"
+                              value={preference}
+                              checked={applicationData.workPreference === preference}
+                              onChange={(e) => setApplicationData(prev => ({ ...prev, workPreference: e.target.value }))}
+                              className="sr-only"
+                            />
+                            <span className={`font-medium capitalize ${
+                              applicationData.workPreference === preference
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : state.darkMode ? 'text-gray-200' : 'text-gray-700'
+                            }`}>
+                              {preference}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Primary Skills *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={applicationData.primarySkills}
+                        onChange={(e) => setApplicationData(prev => ({ ...prev, primarySkills: e.target.value }))}
+                        className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="React, Node.js, TypeScript, Python, AWS..."
+                      />
+                      <p className={`text-xs mt-1 ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Separate skills with commas
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Previous Experience Summary
+                      </label>
+                      <textarea
+                        value={applicationData.previousExperience}
+                        onChange={(e) => setApplicationData(prev => ({ ...prev, previousExperience: e.target.value }))}
+                        rows={4}
+                        className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="Briefly describe your relevant work experience, key achievements, and technologies you've worked with..."
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          Education Level
+                        </label>
+                        <select
+                          value={applicationData.education}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, education: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        >
+                          <option value="">Select Education</option>
+                          <option value="highschool">High School</option>
+                          <option value="associate">Associate Degree</option>
+                          <option value="bachelor">Bachelor's Degree</option>
+                          <option value="master">Master's Degree</option>
+                          <option value="phd">PhD</option>
+                          <option value="bootcamp">Coding Bootcamp</option>
+                          <option value="self-taught">Self-Taught</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                          University/Institution
+                        </label>
+                        <input
+                          type="text"
+                          value={applicationData.university}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, university: e.target.value }))}
+                          className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                          placeholder="Massachusetts Institute of Technology"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Documents & Additional Info */}
+                {currentStep === 3 && (
+                  <div className="space-y-6">
+                    <h4 className={`text-lg font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
+                      Documents & Additional Information
+                    </h4>
+
+                    {/* Resume Upload */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Resume/CV *
+                      </label>
+                      <div className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                        applicationData.resume
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                          : 'border-gray-300 hover:border-blue-400'
+                      } ${state.darkMode ? 'bg-gray-700' : 'bg-white'}`}>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setApplicationData(prev => ({ ...prev, resume: file }));
+                            }
+                          }}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div className="space-y-2">
+                          {applicationData.resume ? (
+                            <>
+                              <FileText className="w-8 h-8 text-green-600 mx-auto" />
+                              <p className={`font-medium ${state.darkMode ? 'text-green-400' : 'text-green-600'}`}>
+                                {applicationData.resume.name}
+                              </p>
+                              <p className={`text-sm ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Click to replace
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-8 h-8 text-gray-400 mx-auto" />
+                              <p className={`font-medium ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                                Click to upload or drag and drop
+                              </p>
+                              <p className={`text-sm ${state.darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                PDF, DOC, or DOCX (max 10MB)
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cover Letter */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Cover Letter *
+                      </label>
+                      <textarea
+                        required
+                        value={applicationData.coverLetter}
+                        onChange={(e) => setApplicationData(prev => ({ ...prev, coverLetter: e.target.value }))}
+                        rows={6}
+                        className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="Dear Hiring Manager,&#10;&#10;I am writing to express my strong interest in the [Position] role at [Company]. With my background in...&#10;&#10;Please find my resume attached for your review. I look forward to hearing from you.&#10;&#10;Best regards,&#10;[Your Name]"
+                      />
+                    </div>
+
+                    {/* Why Interested */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Why are you interested in this position? *
+                      </label>
+                      <textarea
+                        required
+                        value={applicationData.whyInterested}
+                        onChange={(e) => setApplicationData(prev => ({ ...prev, whyInterested: e.target.value }))}
+                        rows={3}
+                        className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="Explain what attracts you to this role and company..."
+                      />
+                    </div>
+
+                    {/* Career Goals */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Career Goals
+                      </label>
+                      <textarea
+                        value={applicationData.careerGoals}
+                        onChange={(e) => setApplicationData(prev => ({ ...prev, careerGoals: e.target.value }))}
+                        rows={3}
+                        className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="Where do you see yourself in 3-5 years?"
+                      />
+                    </div>
+
+                    {/* Additional Info */}
+                    <div>
+                      <label className={`block text-sm font-medium mb-2 ${state.darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Additional Information
+                      </label>
+                      <textarea
+                        value={applicationData.additionalInfo}
+                        onChange={(e) => setApplicationData(prev => ({ ...prev, additionalInfo: e.target.value }))}
+                        rows={3}
+                        className={`w-full px-3 py-2 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                        placeholder="Any additional information you'd like to share..."
+                      />
+                    </div>
+
+                    {/* Legal Checkboxes */}
+                    <div className="space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          id="visa"
+                          checked={applicationData.requiresVisa}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, requiresVisa: e.target.checked }))}
+                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="visa" className={`text-sm ${state.darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          I require visa sponsorship to work in this location
+                        </label>
+                      </div>
+
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          id="relocate"
+                          checked={applicationData.relocateWilling}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, relocateWilling: e.target.checked }))}
+                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="relocate" className={`text-sm ${state.darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          I am willing to relocate for this position
+                        </label>
+                      </div>
+
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          id="terms"
+                          required
+                          checked={applicationData.agreeToTerms}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, agreeToTerms: e.target.checked }))}
+                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="terms" className={`text-sm ${state.darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          I agree to the terms and conditions and privacy policy *
+                        </label>
+                      </div>
+
+                      <div className="flex items-start space-x-3">
+                        <input
+                          type="checkbox"
+                          id="data"
+                          required
+                          checked={applicationData.allowDataProcessing}
+                          onChange={(e) => setApplicationData(prev => ({ ...prev, allowDataProcessing: e.target.checked }))}
+                          className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label htmlFor="data" className={`text-sm ${state.darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          I consent to the processing of my personal data for recruitment purposes *
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Review */}
+                {currentStep === 4 && (
+                  <div className="space-y-6">
+                    <h4 className={`text-lg font-semibold ${state.darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
+                      Review Your Application
+                    </h4>
+
+                    <div className={`p-6 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                      <h5 className={`font-medium mb-3 ${state.darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Job Details
+                      </h5>
+                      <p className={`text-sm ${state.darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        <strong>Position:</strong> {selectedJob.position}<br />
+                        <strong>Company:</strong> {selectedJob.company}<br />
+                        <strong>Location:</strong> {selectedJob.location}<br />
+                        <strong>Type:</strong> {selectedJob.type}<br />
+                        <strong>Salary:</strong> {selectedJob.salary}
+                      </p>
+                    </div>
+
+                    <div className={`p-6 rounded-lg border ${state.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
+                      <h5 className={`font-medium mb-3 ${state.darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Your Information
+                      </h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className={`${state.darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <strong>Name:</strong> {applicationData.firstName} {applicationData.lastName}<br />
+                            <strong>Email:</strong> {applicationData.email}<br />
+                            <strong>Phone:</strong> {applicationData.phone}<br />
+                            <strong>Location:</strong> {applicationData.city}, {applicationData.country}
+                          </p>
+                        </div>
+                        <div>
+                          <p className={`${state.darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            <strong>Experience:</strong> {applicationData.experienceLevel} ({applicationData.yearsOfExperience} years)<br />
+                            <strong>Work Preference:</strong> {applicationData.workPreference}<br />
+                            <strong>Expected Salary:</strong> {applicationData.expectedSalary || 'Not specified'}<br />
+                            <strong>Resume:</strong> {applicationData.resume ? applicationData.resume.name : 'Not uploaded'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {isSubmitting && (
+                      <div className="text-center py-8">
+                        <div className="inline-flex items-center space-x-3">
+                          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          <span className={`${state.darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                            Submitting your application...
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-between pt-8 border-t dark:border-gray-600">
+                  {currentStep > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setCurrentStep(currentStep - 1)}
+                      className={`flex items-center space-x-2 px-6 py-3 rounded-lg border ${state.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'} font-medium transition-colors`}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span>Previous</span>
+                    </button>
+                  )}
+
+                  <div className="flex-1"></div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex items-center space-x-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
+                  >
+                    {currentStep < 4 ? (
+                      <>
+                        <span>Next</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </>
+                    ) : (
+                      <>
+                        <span>{isSubmitting ? 'Submitting...' : 'Submit Application'}</span>
+                        {!isSubmitting && <Check className="w-4 h-4" />}
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className={`max-w-md w-full p-8 rounded-2xl ${state.darkMode ? 'bg-gray-800' : 'bg-white'} text-center`}>
+              <div className="mb-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                    <Check className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                <h3 className={`text-2xl font-bold ${state.darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+                  🎉 Application Submitted Successfully!
+                </h3>
+                <p className={`${state.darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Thank you for applying to {selectedJob?.position} at {selectedJob?.company}. We'll review your application and get back to you soon!
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setSelectedJob(null);
+                  setApplicationData({
+                    firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', address: '', city: '', country: '', linkedinUrl: '', portfolioUrl: '', githubUrl: '',
+                    experienceLevel: '', currentJobTitle: '', currentCompany: '', expectedSalary: '', availableStartDate: '', workPreference: '', noticePeriod: '',
+                    education: '', university: '', graduationYear: '', gpa: '', skills: [], primarySkills: '', yearsOfExperience: '', previousExperience: '',
+                    resume: null, coverLetter: '', additionalDocuments: [], whyInterested: '', expectedChallenges: '', careerGoals: '', additionalInfo: '',
+                    requiresVisa: false, relocateWilling: false, agreeToTerms: false, allowDataProcessing: false
+                  });
+                }}
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                Continue Browsing Jobs
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
